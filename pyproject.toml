@@ -9,6 +9,46 @@ readme = "README.md"
 python = "^3.12"
 blackjax = "^1.2.4"
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.8.4"
+mypy = "^1.14.0"
+
+[tool.ruff]
+line-length = 100
+exclude = [
+    '*.ipynb',
+    'tests/*',
+	'.venv/*'
+]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "ANN101",
+    "ANN102",
+    "COM812",
+	"D205",
+	"EM101", "EM102",
+	"FA102",
+    "ISC001",
+    "D10", "D203", "D213",
+    "Q000", "Q001", "Q003",
+    "TCH003",
+	"TRY003"
+]
+[tool.ruff.lint.per-file-ignores]
+# we don't consider the src dir a Python module
+"src/main.py" = ["INP001"]
+
+[tool.mypy]
+ignore_missing_imports = false
+# mark: PYTHON_VERSION
+python_version = 3.12
+strict_optional = false
+show_error_codes = true
+exclude = [
+    "^tests/"
+]
 
 [build-system]
 requires = ["poetry-core"]
