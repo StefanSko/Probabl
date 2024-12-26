@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 blackjax = "^1.2.4"
+jaxtyping = "^0.2.36"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.8.4"
@@ -41,7 +42,7 @@ ignore = [
 "src/main.py" = ["INP001"]
 
 [tool.mypy]
-ignore_missing_imports = false
+ignore_missing_imports = true
 # mark: PYTHON_VERSION
 python_version = 3.12
 strict_optional = false

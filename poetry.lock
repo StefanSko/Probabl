@@ -175,6 +175,17 @@ numpy = ">=1.18.4"
 scipy = ">=1.0.0"
 
 [[package]]
+name = "jaxtyping"
+version = "0.2.36"
+description = "Type annotations and runtime checking for shape and dtype of JAX/NumPy/PyTorch/etc. arrays."
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "jaxtyping-0.2.36-py3-none-any.whl", hash = "sha256:b19bcbd4009df8734602203402483a4066ad2eb3382904432e370588e9c9707d"},
+    {file = "jaxtyping-0.2.36.tar.gz", hash = "sha256:781ac44a3cf8982063d7ee48b5008ccfad7b13793bf878eb3058d5319aa08f0f"},
+]
+
+[[package]]
 name = "ml-dtypes"
 version = "0.5.0"
 description = ""
@@ -498,4 +509,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "a71584abf43f691cbec2594cd4aac02cbcbab282b8266f10b3a9d2c8ee8002ed"
+content-hash = "6eec22cad5484612b2d68a74f4aac8d489fcbe4966287d17f6620d0acab0a20c"
