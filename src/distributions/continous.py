@@ -1,4 +1,3 @@
-# src/probflow/distributions/continuous.py
 import jax.numpy as jnp
 from jax.scipy import stats
 

@@ -1,4 +1,3 @@
-# src/probflow/core/model.py
 from contextlib import contextmanager
 from typing import Any, Dict, Optional
 
