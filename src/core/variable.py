@@ -1,34 +1,34 @@
-# src/probflow/core/variable.py
-from dataclasses import dataclass
-from typing import Optional
+from core.model import Model
+from core.reader import Reader
 
 
-@dataclass
 class Variable:
-    """Represents a random variable in the model."""
-
-    name: str
-    prior: Optional['Distribution'] = None
-    _value: Optional[Any] = None
+    def __init__(self, name) -> None:
+        self.name = name
+        self.distribution = None
 
     def __invert__(self):
-        """Handle the ~ operator for distribution assignment."""
-        # Get current model context
-        model = Model.get_current()
+        """Called when ~ is used (e.g., y ~ Normal(...))."""
+        # Get the current model context
+        model = ModelContext.get_current()
         if model is None:
             raise RuntimeError("Variable definition must be within a model context")
-        return DistributionAssignment(self)
 
-    def __rshift__(self, distribution):
-        """Handle the >> operator for generative assignments."""
-        model = Model.get_current()
-        if model is None:
-            raise RuntimeError("Generative assignment must be within a model context")
+        # Return a special object that will handle the distribution assignment
+        return DistributionAssignment(self, model)
 
-        relationship = Relationship(self, distribution)
-        model._relationships.append(relationship)
+
+class DistributionAssignment:
+    def __init__(self, variable: Variable, model: Model) -> None:
+        self.variable = variable
+        self.model = model
+
+    def __rrshift__(self, distribution):
+        """Handle the actual distribution assignment."""
+        # Record this relationship in the model
+        relationship = Relationship(self.variable, distribution)
+        self.model._relationships.append(relationship)
         return relationship
-
 
 class Relationship:
     """Represents a generative relationship between variables."""
@@ -37,7 +37,7 @@ class Relationship:
         self.target = target
         self.distribution = distribution
 
-    def log_prob(self, reader):
+    def log_prob(self, reader: Reader):
         """Compute log probability of this relationship."""
         # Get parameter values from reader
         params = {}

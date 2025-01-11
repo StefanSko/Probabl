@@ -9,6 +9,9 @@ from jaxtyping import Array, Float
 
 
 def normal(loc: Array, scale: Array) -> Callable[[Array], Array]:
+
+
+
     def normal_fn(data: Array) -> Array:
         logpdf = stats.norm.logpdf(data, loc, scale)
         return jnp.sum(logpdf)

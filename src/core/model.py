@@ -1,7 +1,10 @@
 from contextlib import contextmanager
-from typing import Any, Dict, Optional
+from typing import Dict, Generator
 
 import jax.numpy as jnp
+
+from core.reader import Reader
+from core.variable import Variable
 
 
 class Model:
@@ -13,14 +16,14 @@ class Model:
         self._relationships = []
         self._current_context = None
 
-    def data(self, name: str, *, prior=None):
+    def data(self, name: str, *, prior=None) -> Variable:
         """Register a data variable with optional prior for simulation."""
         var = Variable(name, prior=prior)
         self._data[name] = var
         return var
 
     @contextmanager
-    def model_context(self):
+    def model_context(self)  -> Generator['Model', None, None]:
         """Context manager for model building."""
         prev_context = self._current_context
         self._current_context = self
@@ -29,13 +32,13 @@ class Model:
         finally:
             self._current_context = prev_context
 
-    def __enter__(self):
+    def __enter__(self) -> 'Model':
         return self.model_context().__enter__()
 
-    def __exit__(self, *args):
+    def __exit__(self, *args) -> bool:  # noqa: ANN002
         return self.model_context().__exit__(*args)
 
-    def log_prob(self, params: Dict[str, jnp.ndarray]) -> float:
+    def log_prob(self, params: dict[str, jnp.ndarray]) -> float:
         """Compute log probability for BlackJAX."""
         reader = Reader(params)
         log_prob = 0.0

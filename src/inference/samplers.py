@@ -1,6 +1,5 @@
 import blackjax
 import jax
-import jax.numpy as jnp
 
 
 def sample_nuts(model, num_samples, *, num_warmup=1000, seed=0):
@@ -32,3 +31,4 @@ def sample_nuts(model, num_samples, *, num_warmup=1000, seed=0):
     states, samples = jax.lax.scan(one_step, state, keys)
 
     return samples
+
