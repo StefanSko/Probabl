@@ -3,6 +3,7 @@ from typing import Callable
 import blackjax
 import jax
 import jax.numpy as jnp
+from blackjax.base import State
 from jax.scipy import stats
 from jaxtyping import Array, Float
 
@@ -27,16 +28,16 @@ initial_position = jax.random.normal(rng_key, shape=(1,))
 
 # Run the sampler
 n_samples = 1000
-initial_state = nuts.init(initial_position)
+initial_state: State = nuts.init(initial_position)
 def inference_loop(
     rng_key: jax.Array,
-    initial_state  # noqa: ANN001
-) -> Float[Array, "n_samples 1"]:  # noqa: F722
+    initial_state: State
+) -> Float[Array, "n_samples 1"]:
     @jax.jit
-    def one_step(  # noqa: ANN202
-        state,  # noqa: ANN001
-        rng_key  # noqa: ANN001
-    ):
+    def one_step(
+        state: State,
+        rng_key: jax.Array
+    ) -> tuple[State, State]:
         state, _ = nuts.step(rng_key, state)
         return state, state
 
