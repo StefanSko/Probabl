@@ -1,22 +1,11 @@
-from typing import Callable
-
 import blackjax
 import jax
 import jax.numpy as jnp
 from blackjax.base import State
-from jax.scipy import stats
 from jaxtyping import Array, Float
 
-
-def normal(loc: Array, scale: Array) -> Callable[[Array], Array]:
-
-
-
-    def normal_fn(data: Array) -> Array:
-        logpdf = stats.norm.logpdf(data, loc, scale)
-        return jnp.sum(logpdf)
-    return normal_fn
-
+from distributions.continous import normal
+from inference.samplers import sample_nuts
 
 # Build the kernel
 step_size = 1e-3
@@ -49,7 +38,10 @@ def inference_loop(
     return states.position
 
 # Generate samples
-samples = inference_loop(jax.random.PRNGKey(1), initial_state)
+#samples = inference_loop(jax.random.PRNGKey(1), initial_state)
+
+
+samples = sample_nuts(normal(0,1), initial_position, 1000, 42)
 
 empirical_mean = jnp.mean(samples, axis=0)
 empirical_std = jnp.std(samples, axis=0)
