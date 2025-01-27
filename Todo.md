@@ -1,0 +1,1 @@
+-distributions and model are kind of an arbitrary distinction as both emit a LogProb, think about unifying the concepts
