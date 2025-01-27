@@ -1,30 +1,27 @@
+from typing import Callable
+
 import blackjax
 import jax
+from blackjax.base import State
+from jaxtyping import Array, Float
 
 
-def sample_nuts(model, num_samples, *, num_warmup=1000, seed=0):
-    """Sample from a model using NUTS via BlackJAX."""
+def sample_nuts(log_prob_fn: Callable[[Array], Array], initial_position: Array, num_samples: int,
+                seed: int) -> Float[Array, "n_samples 1"]:
 
-    def log_prob_fn(params):
-        return model.log_prob(params)
-
-    # Initialize the sampler
-    initial_position = model.initial_values()
     nuts = blackjax.nuts(log_prob_fn)
 
     # Run warmup
     rng_key = jax.random.PRNGKey(seed)
     state = nuts.init(initial_position)
-    state, kernel = blackjax.window_adaptation(
-        nuts,
-        rng_key,
-        initial_position,
-        num_warmup
-    )
 
     # Sample
-    def one_step(state, rng_key):
-        state, _ = kernel(rng_key, state)
+    @jax.jit
+    def one_step(
+            state: State,
+            rng_key: Array
+    ) -> tuple[State, State]:
+        state, _ = nuts.step(rng_key, state)
         return state, state
 
     keys = jax.random.split(rng_key, num_samples)
