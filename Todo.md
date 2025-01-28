@@ -1,1 +1,3 @@
 -distributions and model are kind of an arbitrary distinction as both emit a LogProb, think about unifying the concepts
+    -model composition of initial values and a loop over logprobs?
+- check about warmup and num_steps
