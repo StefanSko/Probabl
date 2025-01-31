@@ -1,4 +1,4 @@
-from typing import Any, Callable, cast
+from typing import Callable, cast
 
 import blackjax
 import jax
@@ -8,7 +8,7 @@ from jax import Array
 
 
 def nuts_with_warmup(
-    logprob_fn: Callable[[Array], float],
+    logprob_fn: Callable[[Array], Array],
     initial_position: Array,
     rng_key: Array,
     num_samples: int = 1000,
