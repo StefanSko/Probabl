@@ -4,15 +4,15 @@ import jax.numpy as jnp
 from jax.scipy import stats
 from jaxtyping import Array
 
-# Type aliases for clarity
-LogProbFn: TypeAlias = Callable[[Array], Array]
-DistributionFn: TypeAlias = Callable[[Array, Array], LogProbFn]
-LogPDFFn: TypeAlias = Callable[[Array, Array, Array], Array]
+# Type aliases for Bayesian probability functions
+LogDensityFn: TypeAlias = Callable[[Array], Array]  # log p(x|θ)
+ParametricDensityFn: TypeAlias = Callable[[Array, Array], LogDensityFn]  # creates p(x|θ)
+LogPDFFn: TypeAlias = Callable[[Array, Array, Array], Array]  # raw PDF computation
 
 def make_distribution(
     logpdf_fn: LogPDFFn
-) -> DistributionFn:
-    def distribution(loc: Array, scale: Array) -> LogProbFn:
+) -> ParametricDensityFn:
+    def distribution(loc: Array, scale: Array) -> LogDensityFn:
         def log_prob(data: Array) -> Array:
             return jnp.sum(logpdf_fn(data, loc, scale))
         return log_prob
@@ -26,12 +26,12 @@ cauchy = make_distribution(stats.cauchy.logpdf)
 
 
 # Custom parameter distributions
-def beta(a: Array, b: Array) -> Callable[[Array], Array]:
+def beta(a: Array, b: Array) -> LogDensityFn:
     def log_prob(data: Array) -> Array:
         return jnp.sum(stats.beta.logpdf(data, a, b))
     return log_prob
 
-def gamma(shape: Array, scale: Array) -> Callable[[Array], Array]:
+def gamma(shape: Array, scale: Array) -> LogDensityFn:
     def log_prob(data: Array) -> Array:
         return jnp.sum(stats.gamma.logpdf(data, shape, scale=scale))
     return log_prob
