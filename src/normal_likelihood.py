@@ -1,8 +1,9 @@
 import jax
 import jax.numpy as jnp
+from jaxtyping import Array, Float
+
 from distributions.continous import normal
 from inference.samplers import nuts_with_warmup
-from jaxtyping import Array, Float
 
 # Simulate some observed data (replace this with your actual data)
 rng_key = jax.random.PRNGKey(0)
