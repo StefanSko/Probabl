@@ -14,6 +14,10 @@ jaxtyping = "^0.2.36"
 ruff = "^0.8.4"
 mypy = "^1.14.0"
 
+[tool.poetry.group.test.dependencies]
+seaborn = "0.13.2"
+matplotlib = "3.9.4"
+
 [tool.ruff]
 line-length = 100
 exclude = [
