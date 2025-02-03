@@ -2,6 +2,7 @@ import blackjax
 import jax
 import jax.numpy as jnp
 from blackjax.base import State
+
 from distributions.continous import normal
 from inference.samplers import nuts_with_warmup
 
