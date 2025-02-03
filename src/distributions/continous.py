@@ -1,12 +1,18 @@
-from typing import Callable
+from typing import Callable, TypeAlias
 
 import jax.numpy as jnp
 from jax.scipy import stats
 from jaxtyping import Array
 
+# Type aliases for clarity
+LogProbFn: TypeAlias = Callable[[Array], Array]
+DistributionFn: TypeAlias = Callable[[Array, Array], LogProbFn]
+LogPDFFn: TypeAlias = Callable[[Array, Array, Array], Array]
 
-def make_distribution(logpdf_fn: Callable) -> Callable:
-    def distribution(loc: Array, scale: Array) -> Callable[[Array], Array]:
+def make_distribution(
+    logpdf_fn: LogPDFFn
+) -> DistributionFn:
+    def distribution(loc: Array, scale: Array) -> LogProbFn:
         def log_prob(data: Array) -> Array:
             return jnp.sum(logpdf_fn(data, loc, scale))
         return log_prob
