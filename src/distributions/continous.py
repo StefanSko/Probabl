@@ -12,7 +12,7 @@ LogPDFFn: TypeAlias = Callable[[Array, Array, Array], Array]  # raw PDF computat
 def make_distribution(
     logpdf_fn: LogPDFFn
 ) -> ParametricDensityFn:
-    def distribution(loc: Array | float, scale: Array | float) -> LogDensityFn:
+    def distribution(loc: Array | float = 0.0, scale: Array | float = 1.0) -> LogDensityFn:
         def log_prob(data: Array) -> Array:
             return jnp.sum(logpdf_fn(data, jnp.array(loc), jnp.array(scale)))
         return log_prob
