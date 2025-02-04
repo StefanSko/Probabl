@@ -1,4 +1,4 @@
-from typing import Callable, cast
+from typing import cast
 
 import blackjax
 import jax
@@ -6,9 +6,11 @@ from blackjax.base import State
 from blackjax.mcmc.hmc import HMCState
 from jax import Array
 
+from distributions.continous import LogDensityFn
+
 
 def nuts_with_warmup(
-    logprob_fn: Callable[[Array], Array],
+    logprob_fn: LogDensityFn,
     initial_position: Array,
     rng_key: Array,
     num_samples: int = 1000,
