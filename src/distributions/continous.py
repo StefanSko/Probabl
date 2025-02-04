@@ -6,15 +6,15 @@ from jaxtyping import Array
 
 # Type aliases for Bayesian probability functions
 LogDensityFn: TypeAlias = Callable[[Array], Array]  # log p(x|θ)
-ParametricDensityFn: TypeAlias = Callable[[Array, Array], LogDensityFn]  # creates p(x|θ)
+ParametricDensityFn: TypeAlias = Callable[[Array | float, Array | float], LogDensityFn] # p(x|θ)
 LogPDFFn: TypeAlias = Callable[[Array, Array, Array], Array]  # raw PDF computation
 
 def make_distribution(
     logpdf_fn: LogPDFFn
 ) -> ParametricDensityFn:
-    def distribution(loc: Array, scale: Array) -> LogDensityFn:
+    def distribution(loc: Array | float, scale: Array | float) -> LogDensityFn:
         def log_prob(data: Array) -> Array:
-            return jnp.sum(logpdf_fn(data, loc, scale))
+            return jnp.sum(logpdf_fn(data, jnp.array(loc), jnp.array(scale)))
         return log_prob
     return distribution
 
@@ -23,6 +23,7 @@ def make_distribution(
 normal = make_distribution(stats.norm.logpdf)
 laplace = make_distribution(stats.laplace.logpdf)
 cauchy = make_distribution(stats.cauchy.logpdf)
+exp = make_distribution(stats.expon.logpdf)
 
 
 # Custom parameter distributions
