@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 from jaxtyping import Array, Float
 
-from distributions.continous import normal
+from distributions.continous import normal, exp
 from inference.samplers import nuts_with_warmup
 
 # Simulate some observed data (replace this with your actual data)
@@ -20,7 +20,7 @@ def posterior_log_prob(params: Float[Array, "2"]) -> Float[Array, ""]:
 
     # Prior contributions (both N(0,1))
     prior_mean = normal(0., 1.)(mean)
-    prior_std = normal(0., 1.)(log_std)
+    prior_std = exp(0., 1.)(log_std)
 
     # Likelihood contribution
     likelihood = normal(mean, std)(observed_data)
