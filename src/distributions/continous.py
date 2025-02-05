@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Callable, TypeAlias
 
 import jax.numpy as jnp
@@ -36,26 +37,3 @@ def gamma(shape: Array, scale: Array) -> LogDensityFn:
     def log_prob(data: Array) -> Array:
         return jnp.sum(stats.gamma.logpdf(data, shape, scale=scale))
     return log_prob
-
-
-
-class Model:
-    def __init__(self) -> None:
-        self.components: list[LogDensityFn] = []
-        self.param_sizes: list[int] = []
-        self._param_slices: list[slice] = []
-
-    def param(self, size: int = 1) -> slice:
-        start = sum(self.param_sizes)
-        self.param_sizes.append(size)
-        param_slice = slice(start, start + size)
-        self._param_slices.append(param_slice)
-        return param_slice
-
-    def add(self, log_prob_fn: LogDensityFn) -> 'Model':
-        self.components.append(log_prob_fn)
-        return self
-
-    def __call__(self, params: Array) -> Array:
-        return jnp.sum(jnp.array([component(params) for component in self.components]))
-
