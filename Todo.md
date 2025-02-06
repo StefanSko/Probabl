@@ -6,6 +6,7 @@
 ~~- check how to conceptualize some type of model class that is recursive for hierachical structures~~
   ~~- think about context manager vs builder pattern~~
     ~~- propagate new types to the rest of the code!~~
-- check about prior-/posterior duality and incorporating no/missing data transparently?
-  - what about simulation / calibration
+~~- check about prior-/posterior duality and incorporating no/missing data transparently?
+  - what about simulation / calibration~~
+- check FIXME
 - check about warmup and num_steps

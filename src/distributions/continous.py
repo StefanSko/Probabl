@@ -6,6 +6,7 @@ from jaxtyping import Array
 
 # Type aliases for Bayesian probability functions
 LogDensityFn: TypeAlias = Callable[[Array], Array]  # log p(x|θ)
+#TODO: FIXME!!
 Parameters = tuple[Array | float, ...]  # θ = (θ₁, θ₂, ...)
 ParametricDensityFn: TypeAlias = Callable[[Parameters], LogDensityFn]  # p(x|θ)
 LogPDFFn: TypeAlias = Callable[[Array, Array | float, Array | float], Array]  # raw PDF computation
