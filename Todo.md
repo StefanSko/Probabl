@@ -8,6 +8,7 @@
     ~~- propagate new types to the rest of the code!~~
 ~~- check about prior-/posterior duality and incorporating no/missing data transparently?~~
   ~~- what about simulation / calibration~~
-- check FIXME
+~~- check FIXME~~
+- think about prior/simulation
 - think about modularization and more semantically clear naming
 - check about warmup and num_steps
