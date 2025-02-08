@@ -20,6 +20,20 @@ flowchart TD
     style LDF fill:#bfe9,stroke:#333,stroke-width:2px
 ```
 
+Key Concepts:
+- A Variable can be either observed (data) or unobserved (parameters)
+- ParametricDensityFn is a higher-order function that:
+  - Takes a Variable as input
+  - Returns a LogDensityFn
+- LogDensityFn is a function that:
+  - Takes another Variable as input
+  - Returns a LogProb value
+- This structure allows composition of probabilistic models where:
+  - Priors follow: observed → (unobserved → LogProb)
+  - Likelihoods follow: unobserved → (observed → LogProb)
+  - Posteriors combine these patterns
+- The same structure applies recursively to build complex models
+
 ```mermaid
 flowchart TD
     subgraph "Variable Types"
@@ -34,7 +48,20 @@ flowchart TD
     style V fill:#f9f9,stroke:#333
     style OV fill:#bfe9,stroke:#333
     style UV fill:#bbf9,stroke:#333
-```mermaid
+```
+
+Prior Example: normal(0,1)
+- A prior distribution shows how hyperparameters determine parameter uncertainty:
+- Observed hyperparameters: loc=0, scale=1 (fixed)
+- Unobserved parameter: θ (to be estimated)
+- The structure demonstrates:
+- Outer function takes observed hyperparameters
+- Inner function takes unobserved parameter θ
+- Returns LogProb of θ under N(0,1)
+- This follows the pattern:
+  - observed → (unobserved → LogProb)
+- Matches the general prior structure
+- Shows how fixed values influence parameter uncertainty
 
 ```mermaid
 flowchart TD
@@ -54,7 +81,7 @@ flowchart TD
     style LP fill:#ddd9,stroke:#333
     style PDF fill:#bbf9,stroke:#333,stroke-width:2px
     style LDF fill:#bfe9,stroke:#333,stroke-width:2px
-``
+```
 
 ```mermaid
 flowchart TD
