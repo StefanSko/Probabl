@@ -16,8 +16,8 @@ class Parameters(BaseParams):
 
 @dataclass(frozen=True)
 class LocationScaleParams(BaseParams):
-    loc: Array | float
-    scale: Array | float
+    loc: Array | float = 0.0
+    scale: Array | float = 1.0
 
 @dataclass(frozen=True)
 class BetaParams(BaseParams):
