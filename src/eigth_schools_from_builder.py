@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass  # noqa: I001
 from typing import Callable
 
 import jax
@@ -45,23 +45,37 @@ def build_eight_schools_model() -> ProbabilisticModel[HierarchicalParams]:
     def data_fn() -> Array:
         return treatment_effects
 
+    # Define the likelihood function
+    def likelihood_fn(params: HierarchicalParams, data: Array) -> Array:
+        return normal(LocationScaleParams(params.theta, standard_errors))(data)
+
+    # Define prior density function
+    def prior_density_fn(params: HierarchicalParams) -> Array:
+        # Priors only
+        prior_mu = normal(LocationScaleParams(0., 1.))(params.mu)
+        prior_tau = normal(LocationScaleParams(5., 1.))(params.log_tau)
+        prior_theta = normal(LocationScaleParams(params.mu, params.tau))(params.theta)
+        return prior_mu + prior_tau + prior_theta
+
+    # Define the parametric density function that combines prior and likelihood
     def parametric_density_fn(params: HierarchicalParams) -> Callable[[Array], Array]:
         def log_prob(data: Array) -> Array:
-            # Priors
-            prior_mu = normal(LocationScaleParams(0., 1.))(params.mu)
-            prior_tau = normal(LocationScaleParams(5., 1.))(params.log_tau)
-            prior_theta = normal(LocationScaleParams(params.mu, params.tau))(params.theta)
+            # Calculate priors
+            prior_log_prob = prior_density_fn(params)
 
-            # Likelihood
-            likelihood = normal(LocationScaleParams(params.theta, standard_errors))(data)
+            # Calculate likelihood using the same likelihood function defined earlier
+            likelihood_log_prob = likelihood_fn(params, data)
 
-            return prior_mu + prior_tau + prior_theta + likelihood
+            return prior_log_prob + likelihood_log_prob
 
         return log_prob
 
+    # Build the model with all components
     return (ProbabilisticModelBuilder[HierarchicalParams]()
             .with_data(data_fn)
             .with_parametric_density_fn(parametric_density_fn)
+            .with_likelihood_fn(likelihood_fn)
+            .with_prior_density_fn(prior_density_fn)
             .build())
 
 
