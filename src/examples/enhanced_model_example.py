@@ -75,12 +75,8 @@ def main() -> None:
     # Add observed data
     model_builder.with_observed_data(observed_data_fn)
 
-    # Add prior simulator
-    prior_params = LinearRegressionParams(
-        intercept=jnp.array(0.0),
-        slope=jnp.array(0.0),
-        log_scale=jnp.array(0.0),
-    )
+    # Define prior parameters for reference (not used in this example)
+    # Removed unused variable to satisfy linter
 
     # Create parametric density function
     def parametric_density_fn(params: LinearRegressionParams):

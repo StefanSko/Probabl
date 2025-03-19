@@ -30,7 +30,7 @@ class HierarchicalParams(BaseParams):
     
     mu: Float[Array, " "]
     log_tau: Float[Array, " "]
-    theta: Float[Array, "n_schools"]
+    theta: Float[Array, "..."]  # Use ellipsis for arbitrary dimensions
     
     @property
     def tau(self) -> Float[Array, " "]:
@@ -160,7 +160,7 @@ def main() -> None:
     # Create boxplots for each school
     plt.boxplot(
         theta_samples,
-        labels=[f"School {i+1}" for i in range(n_schools)],
+        label="School Effects",
         patch_artist=True,
     )
     
@@ -185,10 +185,10 @@ def main() -> None:
     
     # Add the global mean
     plt.axhline(
-        jnp.mean(mu_samples),
+        float(jnp.mean(mu_samples)),
         color='blue',
         linestyle='--',
-        label=f'Population Mean: {jnp.mean(mu_samples):.1f}',
+        label=f'Population Mean: {float(jnp.mean(mu_samples)):.1f}',
     )
     
     plt.xlabel('School')

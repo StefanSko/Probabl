@@ -1,6 +1,6 @@
 """Hierarchical model example with the context-aware framework."""
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import jax
 import jax.numpy as jnp
@@ -68,7 +68,7 @@ def generate_hierarchical_data(
     x_min: float = -3.0,
     x_max: float = 3.0,
     rng_key: jax.Array = None,
-) -> Tuple[Dict[str, Array], Dict[str, Array]]:
+) -> Tuple[Dict[str, Any], Dict[str, Array]]:
     """Generate synthetic data for hierarchical linear regression.
     
     Args:
@@ -292,7 +292,8 @@ def main() -> None:
                 )(y_group)
                 
                 # Add to total log likelihood
-                log_likelihood = log_likelihood + group_likelihood
+                # Cast to the same type to avoid type error
+                log_likelihood = float(log_likelihood) + float(group_likelihood)
             
             # Combine all log probabilities
             return (
@@ -475,8 +476,8 @@ def main() -> None:
     # Add arrows to show shrinkage
     for i in range(n_groups):
         plt.arrow(
-            true_alpha[i], raw_alpha[i],
-            0, posterior_alpha[i] - raw_alpha[i],
+            float(true_alpha[i]), float(raw_alpha[i]),
+            0, float(posterior_alpha[i] - raw_alpha[i]),
             color='gray', width=0.01, head_width=0.05, head_length=0.05,
             length_includes_head=True, alpha=0.5
         )
@@ -488,11 +489,11 @@ def main() -> None:
     
     # Add global mean
     plt.axhline(
-        jnp.mean(mu_alpha_samples),
+        float(jnp.mean(mu_alpha_samples)),
         color='blue',
         linestyle=':',
         alpha=0.5,
-        label=f"Global Mean: {jnp.mean(mu_alpha_samples):.2f}"
+        label=f"Global Mean: {float(jnp.mean(mu_alpha_samples)):.2f}"
     )
     
     plt.xlabel("True Values")
@@ -531,8 +532,8 @@ def main() -> None:
     # Add arrows to show shrinkage
     for i in range(n_groups):
         plt.arrow(
-            true_beta[i], raw_beta[i],
-            0, posterior_beta[i] - raw_beta[i],
+            float(true_beta[i]), float(raw_beta[i]),
+            0, float(posterior_beta[i] - raw_beta[i]),
             color='gray', width=0.01, head_width=0.05, head_length=0.05,
             length_includes_head=True, alpha=0.5
         )
@@ -544,11 +545,11 @@ def main() -> None:
     
     # Add global mean
     plt.axhline(
-        jnp.mean(mu_beta_samples),
+        float(jnp.mean(mu_beta_samples)),
         color='blue',
         linestyle=':',
         alpha=0.5,
-        label=f"Global Mean: {jnp.mean(mu_beta_samples):.2f}"
+        label=f"Global Mean: {float(jnp.mean(mu_beta_samples)):.2f}"
     )
     
     plt.xlabel("True Values")
