@@ -5,13 +5,13 @@ import jax
 import jax.numpy as jnp
 from jaxtyping import Array, Float
 
-from src.distributions import (
+from distributions import (
     BaseParams,
     EnhancedModelBuilder,
     LocationScaleParams,
     normal_distribution,
 )
-from src.inference import (
+from inference import (
     ConstraintRegistry,
     DataContext,
     context,

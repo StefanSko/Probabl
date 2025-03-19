@@ -3,12 +3,12 @@ import jax
 import jax.numpy as jnp
 from jaxtyping import Array
 
-from src.distributions import (
+from distributions import (
     LocationScaleParams,
     normal_distribution,
 )
-from src.distributions.distribution import data_from_distribution
-from src.inference import (
+from distributions.distribution import data_from_distribution
+from inference import (
     DataContext,
     context,
     make_context_aware_data,
