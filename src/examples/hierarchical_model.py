@@ -1,6 +1,11 @@
 """Hierarchical model example with the context-aware framework."""
 from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple
+import sys
+import os
+
+# Add the parent directory to path so we can import our modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import jax
 import jax.numpy as jnp

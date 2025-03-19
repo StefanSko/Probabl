@@ -7,8 +7,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from jaxtyping import Array, Float
 
-from distributions import Distribution, EnhancedProbabilisticModel, normal_distribution
-from distributions.distribution import data_from_distribution
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from distributions import Distribution, EnhancedProbabilisticModel, normal_distribution
+    from distributions.distribution import data_from_distribution
+
 from inference.context import DataContext, context
 
 
@@ -28,7 +32,7 @@ class SummaryDict(TypedDict, total=False):
 
 
 def check_prior_predictive(
-    model: EnhancedProbabilisticModel[Any],
+    model: Any,  # EnhancedProbabilisticModel[Any]
     n_samples: int = 100,
     rng_key: Optional[jax.Array] = None,
 ) -> Array:
@@ -124,7 +128,7 @@ def summarize_prior_predictive(
 
 
 def check_posterior_predictive(
-    model: EnhancedProbabilisticModel[Any],
+    model: Any,  # EnhancedProbabilisticModel[Any]
     posterior_samples: Array,
     n_samples: int = 100,
     rng_key: Optional[jax.Array] = None,

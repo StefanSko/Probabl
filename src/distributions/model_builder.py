@@ -55,6 +55,22 @@ class EnhancedModelBuilder(Generic[P]):
             distribution, params, rng_key, sample_shape
         )
         return self
+    
+    def with_custom_prior_simulator(
+        self,
+        simulator_fn: Callable[[], P]
+    ) -> 'EnhancedModelBuilder[P]':
+        """Set a custom prior simulator function."""
+        self.prior_simulator = simulator_fn
+        return self
+        
+    def with_prior_data_simulator(
+        self,
+        data_simulator_fn: Callable[[], Array]
+    ) -> 'EnhancedModelBuilder[P]':
+        """Set a custom prior data simulator function."""
+        self.prior_simulator = data_simulator_fn
+        return self
 
     def with_posterior_simulator(
         self,
@@ -70,6 +86,30 @@ class EnhancedModelBuilder(Generic[P]):
             return data_generator(sample)
 
         self.posterior_simulator = posterior_data_fn
+        return self
+        
+    def with_posterior_data_simulator(
+        self,
+        data_simulator_fn: Callable[[P], Array]
+    ) -> 'EnhancedModelBuilder[P]':
+        """Set a custom posterior data simulator function that takes parameters."""
+        # Create a wrapper function that will be used with actual parameters
+        # during posterior predictive checks
+        def posterior_wrapper(params: P) -> Callable[[], Array]:
+            def data_fn() -> Array:
+                return data_simulator_fn(params)
+            return data_fn
+            
+        # Store the wrapper function for later use
+        self._posterior_data_generator = posterior_wrapper
+        
+        # Create a temporary simulator that will be replaced during workflow execution
+        # This is just to satisfy the API until we have actual posterior samples
+        def temp_simulator() -> Array:
+            # This will be replaced with actual posterior samples
+            raise NotImplementedError("Posterior simulator not yet initialized with samples")
+            
+        self.posterior_simulator = temp_simulator
         return self
 
     def with_parametric_density_fn(
