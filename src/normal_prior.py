@@ -7,7 +7,9 @@ from distributions import LocationScaleParams, normal_distribution
 from inference.samplers import nuts_with_warmup
 
 # Create log density function for the prior
-log_density_fn = normal_distribution.log_prob(LocationScaleParams(loc=jnp.array([0.]), scale=jnp.array([1.])))
+log_density_fn = normal_distribution.log_prob(
+    LocationScaleParams(loc=jnp.array([0.]), scale=jnp.array([1.]))
+)
 
 # Build the kernel
 step_size = 1e-3

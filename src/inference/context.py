@@ -1,10 +1,12 @@
-from enum import Enum, auto
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Iterator
+from enum import Enum, auto
+
 
 class DataContext(Enum):
     """Enum for different contexts in the Bayesian workflow."""
+
     PRIOR_PREDICTIVE = auto()
     INFERENCE = auto()
     POSTERIOR_PREDICTIVE = auto()
@@ -19,18 +21,19 @@ class DataContextManager:
     based on whether they're being used for prior simulation, inference,
     or posterior prediction.
     """
+
     _current_context: DataContext = DataContext.INFERENCE
     _context_stack: list[DataContext] = field(default_factory=list)
-    
+
     @property
     def current_context(self) -> DataContext:
         """Get the current data context."""
         return self._current_context
-    
+
     def set_context(self, context: DataContext) -> None:
         """Set the current data context."""
         self._current_context = context
-    
+
     @contextmanager
     def context(self, ctx: DataContext) -> Iterator[None]:
         """Context manager for temporarily changing the data context."""
@@ -63,6 +66,7 @@ def context(ctx: DataContext) -> Iterator[None]:
     
     Args:
         ctx: The context to use temporarily
+
     """
     with default_context_manager.context(ctx):
         yield

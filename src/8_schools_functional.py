@@ -10,7 +10,7 @@ treatment_effects = jnp.array([28., 8., -3., 7., -1., 1., 18., 12.])
 standard_errors = jnp.array([15., 10., 16., 11., 9., 11., 10., 18.])
 n_schools = len(treatment_effects)
 
-def posterior_log_prob(params: Float[Array, "10"]) -> Float[Array, ""]:
+def posterior_log_prob(params: Float[Array, "10"]) -> Float[Array, " "]:
     # Unpack parameters
     mu = params[0]          # population mean
     log_tau = params[1]     # log population standard deviation
@@ -22,13 +22,18 @@ def posterior_log_prob(params: Float[Array, "10"]) -> Float[Array, ""]:
     # Priors
     # Weakly informative priors for mu and tau
     prior_mu = normal_distribution.log_prob(LocationScaleParams(loc=0., scale=1.))(mu)
-    prior_tau = normal_distribution.log_prob(LocationScaleParams(loc=5., scale=1.))(log_tau)  # prior on log_tau
+    # prior on log_tau
+    prior_tau = normal_distribution.log_prob(
+        LocationScaleParams(loc=5., scale=1.)
+    )(log_tau)
 
     # Hierarchical prior for school effects
     prior_theta = normal_distribution.log_prob(LocationScaleParams(loc=mu, scale=tau))(theta)
 
     # Likelihood for observed effects
-    likelihood = normal_distribution.log_prob(LocationScaleParams(loc=theta, scale=standard_errors))(treatment_effects)
+    likelihood = normal_distribution.log_prob(
+        LocationScaleParams(loc=theta, scale=standard_errors)
+    )(treatment_effects)
 
     return prior_mu + prior_tau + prior_theta + likelihood
 

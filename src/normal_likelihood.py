@@ -2,7 +2,8 @@ import jax
 import jax.numpy as jnp
 from jaxtyping import Array, Float
 
-from distributions.continous import exp, normal, LocationScaleParams
+from distributions import LocationScaleParams, normal_distribution
+from distributions.continous import exp
 from inference.samplers import nuts_with_warmup
 
 # Simulate some observed data (replace this with your actual data)
@@ -15,15 +16,19 @@ n_samples = 1000
 observed_data = jax.random.normal(key_data, shape=(n_samples,)) * true_sigma + true_mu
 
 
-def posterior_log_prob(params: Float[Array, "2"]) -> Float[Array, ""]:
+def posterior_log_prob(params: Float[Array, "2"]) -> Float[Array, " "]:
     mean, std = params  # we sample log_std for numerical stability
 
     # Prior contributions (both N(0,1))
-    prior_mean = normal(LocationScaleParams(loc=0.0, scale=1.0))(mean)
+    prior_mean = normal_distribution.log_prob(
+        LocationScaleParams(loc=0.0, scale=1.0)
+    )(mean)
     prior_std = exp(LocationScaleParams(loc=0.0, scale=1.0))(std)
 
     # Likelihood contribution
-    likelihood = normal(LocationScaleParams(loc=mean, scale=std))(observed_data)
+    likelihood = normal_distribution.log_prob(
+        LocationScaleParams(loc=mean, scale=std)
+    )(observed_data)
 
     return prior_mean + prior_std + likelihood
 

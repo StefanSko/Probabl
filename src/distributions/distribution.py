@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Generic, Protocol, TypeVar
+from typing import Any, Callable, Generic, TypeVar
 
 import jax
 import jax.numpy as jnp
 from jaxtyping import Array
 
 from distributions.continous import BaseParams, LogDensityFn
-
 
 P = TypeVar('P', bound=BaseParams)
 
@@ -16,7 +15,7 @@ class Distribution(Generic[P], ABC):
     
     Encapsulates both the log PDF and sampling functionality for a distribution.
     """
-    
+
     @abstractmethod
     def log_prob(self, params: P) -> LogDensityFn:
         """Returns a function that computes the log probability of data given parameters.
@@ -26,9 +25,10 @@ class Distribution(Generic[P], ABC):
             
         Returns:
             A function that takes data and returns log probabilities
+
         """
         ...
-    
+
     @abstractmethod
     def sample(self, params: P, rng_key: jax.Array, sample_shape: tuple[int, ...] = (1,)) -> Array:
         """Generate samples from the distribution.
@@ -40,13 +40,14 @@ class Distribution(Generic[P], ABC):
             
         Returns:
             Array of samples from the distribution
+
         """
         ...
 
 
 class NormalDistribution(Distribution[P]):
     """Normal (Gaussian) distribution."""
-    
+
     def log_prob(self, params: P) -> LogDensityFn:
         """Returns a function that computes the log probability density of a normal distribution.
         
@@ -55,15 +56,16 @@ class NormalDistribution(Distribution[P]):
             
         Returns:
             A function that takes data and returns log probabilities
+
         """
         loc = params.loc if hasattr(params, 'loc') else 0.0
         scale = params.scale if hasattr(params, 'scale') else 1.0
-        
+
         def log_prob_fn(data: Array) -> Array:
             return jnp.sum(jax.scipy.stats.norm.logpdf(data, loc, scale))
-        
+
         return log_prob_fn
-    
+
     def sample(self, params: P, rng_key: jax.Array, sample_shape: tuple[int, ...] = (1,)) -> Array:
         """Generate samples from a normal distribution.
         
@@ -74,16 +76,17 @@ class NormalDistribution(Distribution[P]):
             
         Returns:
             Array of samples from the normal distribution
+
         """
         loc = params.loc if hasattr(params, 'loc') else 0.0
         scale = params.scale if hasattr(params, 'scale') else 1.0
-        
+
         return jax.random.normal(rng_key, sample_shape) * scale + loc
 
 
 class BetaDistribution(Distribution[P]):
     """Beta distribution."""
-    
+
     def log_prob(self, params: P) -> LogDensityFn:
         """Returns a function that computes the log probability density of a beta distribution.
         
@@ -92,15 +95,16 @@ class BetaDistribution(Distribution[P]):
             
         Returns:
             A function that takes data and returns log probabilities
+
         """
         a = params.a if hasattr(params, 'a') else 1.0
         b = params.b if hasattr(params, 'b') else 1.0
-        
+
         def log_prob_fn(data: Array) -> Array:
             return jnp.sum(jax.scipy.stats.beta.logpdf(data, a, b))
-        
+
         return log_prob_fn
-    
+
     def sample(self, params: P, rng_key: jax.Array, sample_shape: tuple[int, ...] = (1,)) -> Array:
         """Generate samples from a beta distribution.
         
@@ -111,16 +115,17 @@ class BetaDistribution(Distribution[P]):
             
         Returns:
             Array of samples from the beta distribution
+
         """
         a = params.a if hasattr(params, 'a') else 1.0
         b = params.b if hasattr(params, 'b') else 1.0
-        
+
         return jax.random.beta(rng_key, a, b, sample_shape)
 
 
 class GammaDistribution(Distribution[P]):
     """Gamma distribution."""
-    
+
     def log_prob(self, params: P) -> LogDensityFn:
         """Returns a function that computes the log probability density of a gamma distribution.
         
@@ -129,15 +134,16 @@ class GammaDistribution(Distribution[P]):
             
         Returns:
             A function that takes data and returns log probabilities
+
         """
         shape = params.shape if hasattr(params, 'shape') else 1.0
         scale = params.scale if hasattr(params, 'scale') else 1.0
-        
+
         def log_prob_fn(data: Array) -> Array:
             return jnp.sum(jax.scipy.stats.gamma.logpdf(data, shape, scale=scale))
-        
+
         return log_prob_fn
-    
+
     def sample(self, params: P, rng_key: jax.Array, sample_shape: tuple[int, ...] = (1,)) -> Array:
         """Generate samples from a gamma distribution.
         
@@ -148,16 +154,16 @@ class GammaDistribution(Distribution[P]):
             
         Returns:
             Array of samples from the gamma distribution
+
         """
         shape = params.shape if hasattr(params, 'shape') else 1.0
         scale = params.scale if hasattr(params, 'scale') else 1.0
-        
+
         return jax.random.gamma(rng_key, shape, sample_shape) * scale
 
 
 # Create distribution instances with explicit type annotations
 # Since these are global instances, we need to use Any for the generic parameter
-from typing import Any
 
 normal_distribution = NormalDistribution[Any]()
 beta_distribution = BetaDistribution[Any]()
@@ -180,11 +186,12 @@ def data_from_distribution(
         
     Returns:
         A data function that returns samples from the distribution
+
     """
     # Pre-generate samples for efficiency
     samples = distribution.sample(params, rng_key, sample_shape)
-    
+
     def data_fn() -> Array:
         return samples
-    
+
     return data_fn

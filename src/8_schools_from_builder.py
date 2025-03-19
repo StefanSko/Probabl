@@ -3,6 +3,8 @@ from typing import Callable
 
 import jax
 import jax.numpy as jnp
+from jaxtyping import Array, Float
+
 from distributions.continous import (
     LocationScaleParams,
     Parameters,
@@ -11,7 +13,6 @@ from distributions.continous import (
     normal,
 )
 from inference.samplers import nuts_with_warmup
-from jaxtyping import Array, Float
 
 # The 8 schools data
 treatment_effects = jnp.array([28., 8., -3., 7., -1., 1., 18., 12.])
@@ -24,15 +25,15 @@ class HierarchicalParams(Parameters):
     params: Float[Array, "10"]  # [mu, log_tau, theta(8)]
 
     @property
-    def mu(self) -> Float[Array, ""]:
+    def mu(self) -> Float[Array, " "]:
         return self.params[0]
 
     @property
-    def log_tau(self) -> Float[Array, ""]:
+    def log_tau(self) -> Float[Array, " "]:
         return self.params[1]
 
     @property
-    def tau(self) -> Float[Array, ""]:
+    def tau(self) -> Float[Array, " "]:
         return jnp.exp(self.log_tau)
 
     @property
@@ -111,4 +112,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
