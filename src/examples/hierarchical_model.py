@@ -178,6 +178,12 @@ def main() -> None:
     y_data = data["y"]
     group_data = data["group"]
     
+    # Precompute group indices for each group to avoid using boolean masking in JAX
+    group_indices = []
+    for i in range(n_groups):
+        indices = jnp.where(group_data == i)[0]
+        group_indices.append(indices)
+    
     # Plot the data by group
     plt.figure(figsize=(12, 8))
     
@@ -223,9 +229,10 @@ def main() -> None:
         
         # For each group, generate data
         for i in range(n_groups):
-            # Get group-specific data
-            group_mask = group_data == i
-            x_group = x_data[group_mask]
+            # Get indices for this group
+            indices = group_indices[i]
+            # Extract group data without boolean masking
+            x_group = x_data[indices]
             
             # Compute mean prediction
             mean_pred = params.alpha[i] + params.beta[i] * x_group
@@ -235,7 +242,7 @@ def main() -> None:
             noise = jax.random.normal(key_sim, shape=mean_pred.shape) * params.sigma
             
             # Set simulated data for this group
-            simulated_data = simulated_data.at[group_mask].set(mean_pred + noise)
+            simulated_data = simulated_data.at[indices].set(mean_pred + noise)
         
         return simulated_data
     
@@ -244,6 +251,66 @@ def main() -> None:
     
     # Add observed data
     model_builder.with_observed_data(observed_data_fn)
+    
+    # Add prior simulator function
+    def prior_simulator() -> Array:
+        # Generate simulated data from prior
+        # Use a fixed key for reproducibility
+        key_sim = jax.random.PRNGKey(42)
+        
+        # Generate random parameters from the prior
+        key1, key2, key3, key4, key5 = jax.random.split(key_sim, 5)
+        
+        # Sample hyperparameters from prior distributions
+        mu_alpha = jax.random.normal(key1) * 5.0  # Normal(0, 5)
+        mu_beta = jax.random.normal(key2) * 5.0   # Normal(0, 5)
+        log_tau_alpha = jax.random.normal(key3)   # Normal(0, 1)
+        log_tau_beta = jax.random.normal(key4)    # Normal(0, 1)
+        log_sigma = jax.random.normal(key5)       # Normal(0, 1)
+        
+        # Transform log parameters
+        tau_alpha = jnp.exp(log_tau_alpha)
+        tau_beta = jnp.exp(log_tau_beta)
+        sigma = jnp.exp(log_sigma)
+        
+        # Sample group-level parameters
+        alpha_keys = jax.random.split(key1, n_groups)
+        beta_keys = jax.random.split(key2, n_groups)
+        
+        alpha = jnp.array([mu_alpha + jax.random.normal(k) * tau_alpha for k in alpha_keys])
+        beta = jnp.array([mu_beta + jax.random.normal(k) * tau_beta for k in beta_keys])
+        
+        # Simulate data
+        simulated_data = jnp.zeros_like(y_data)
+        
+        # For each group, generate data
+        for i in range(n_groups):
+            # Get indices for this group
+            indices = group_indices[i]
+            # Extract group data without boolean masking
+            x_group = x_data[indices]
+            
+            # Compute mean prediction
+            mean_pred = alpha[i] + beta[i] * x_group
+            
+            # Generate random noise
+            key_noise = jax.random.fold_in(key_sim, i)
+            noise = jax.random.normal(key_noise, shape=mean_pred.shape) * sigma
+            
+            # Set simulated data for this group
+            simulated_data = simulated_data.at[indices].set(mean_pred + noise)
+        
+        return simulated_data
+    
+    # Add the prior simulator to the model builder
+    model_builder.with_prior_data_simulator(prior_simulator)
+    
+    # Add posterior simulator function
+    def posterior_simulator(params: HierarchicalParams) -> Array:
+        return simulate_data(params)
+    
+    # Add the posterior simulator to the model builder
+    model_builder.with_posterior_data_simulator(posterior_simulator)
     
     # Define parametric density function
     def parametric_density_fn(params: HierarchicalParams):
@@ -278,33 +345,36 @@ def main() -> None:
                 LocationScaleParams(loc=params.mu_beta, scale=params.tau_beta)
             )(params.beta)
             
-            # Initialize log likelihood
-            log_likelihood = 0.0
+            # Initialize log likelihood - must be JAX array for vmap
+            log_likelihood = jnp.array(0.0)
             
-            # Compute likelihood for each group
-            for i in range(n_groups):
-                # Get group-specific data
-                group_mask = group_data == i
-                x_group = x_data[group_mask]
-                y_group = data[group_mask]
+            # Define a function for computing the likelihood for a single group
+            def compute_group_likelihood(i):
+                # Get indices for this group
+                indices = group_indices[i]
+                # Extract group data without boolean masking
+                x_group = x_data[indices]
+                y_group = data[indices]
                 
                 # Compute mean prediction
                 mean_pred = params.alpha[i] + params.beta[i] * x_group
                 
                 # Compute log likelihood for this group
-                group_likelihood = normal_distribution.log_prob(
+                return normal_distribution.log_prob(
                     LocationScaleParams(loc=mean_pred, scale=params.sigma)
                 )(y_group)
-                
-                # Add to total log likelihood
-                # Cast to the same type to avoid type error
-                log_likelihood = float(log_likelihood) + float(group_likelihood)
+            
+            # Compute likelihoods for all groups
+            group_log_likelihoods = jnp.array([compute_group_likelihood(i) for i in range(n_groups)])
+            
+            # Sum the log likelihoods
+            log_likelihood = jnp.sum(group_log_likelihoods)
             
             # Combine all log probabilities
             return (
                 prior_mu_alpha + prior_mu_beta +
                 prior_tau_alpha + prior_tau_beta + prior_sigma +
-                prior_alpha + prior_beta +
+                jnp.sum(prior_alpha) + jnp.sum(prior_beta) +
                 log_likelihood
             )
         

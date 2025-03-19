@@ -147,6 +147,10 @@ class BayesianWorkflow(Generic[P]):
         Returns:
             Array of posterior samples
         """
+        # Store the unflatten function for later use
+        if unflatten_fn is not None:
+            self._unflatten_fn = unflatten_fn
+            
         # Split the random key
         self.rng_key, subkey = jax.random.split(self.rng_key)
         
@@ -254,17 +258,16 @@ class BayesianWorkflow(Generic[P]):
                     samples.append(data_fn())
             else:
                 # Fall back to using raw posterior samples
+                # We need unflatten_fn to create proper parameter objects from raw samples
+                if not hasattr(self, '_unflatten_fn') or self._unflatten_fn is None:
+                    raise ValueError("Cannot generate posterior predictive samples without unflatten_fn")
+                
                 for i in range(num_posterior_samples):
-                    # Create params from the raw samples (this is a simplified approach)
-                    # In a real implementation, you would properly unflatten the samples
+                    # Create params from the raw samples using the unflatten function
                     raw_sample = self.results.posterior_samples[i]
-                    if hasattr(self, '_temp_params'):
-                        # Create params by updating temp params with raw sample
-                        # This is a simplified approach
-                        params = self._temp_params
-                    else:
-                        # Can't generate without proper params
-                        raise ValueError("Cannot generate posterior predictive samples without parameter structure")
+                    params = self._unflatten_fn(raw_sample)
+                    
+                    # Generate data using the custom generator
                     data_fn = self.model._posterior_data_generator(params)
                     samples.append(data_fn())
                     

@@ -131,7 +131,13 @@ class EnhancedModelBuilder(Generic[P]):
             posterior_simulator=self.posterior_simulator,
         )
 
-        return EnhancedProbabilisticModel(
+        model = EnhancedProbabilisticModel(
             data=context_aware_data,
             parametric_density_fn=self.parametric_density_fn,
         )
+        
+        # Transfer the posterior data generator if it exists
+        if hasattr(self, '_posterior_data_generator'):
+            model._posterior_data_generator = self._posterior_data_generator
+            
+        return model
