@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic, Protocol, TypeVar
+from typing import Any, Callable, Generic, Protocol, TypeVar
 
 import jax
 import jax.numpy as jnp
@@ -155,10 +155,13 @@ class GammaDistribution(Distribution[P]):
         return jax.random.gamma(rng_key, shape, sample_shape) * scale
 
 
-# Create distribution instances
-normal_distribution = NormalDistribution()
-beta_distribution = BetaDistribution()
-gamma_distribution = GammaDistribution()
+# Create distribution instances with explicit type annotations
+# Since these are global instances, we need to use Any for the generic parameter
+from typing import Any
+
+normal_distribution = NormalDistribution[Any]()
+beta_distribution = BetaDistribution[Any]()
+gamma_distribution = GammaDistribution[Any]()
 
 
 def data_from_distribution(

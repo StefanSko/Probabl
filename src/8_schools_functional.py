@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 from jaxtyping import Array, Float
 
-from distributions.continous import normal
+from distributions import LocationScaleParams, normal_distribution
 from inference.samplers import nuts_with_warmup
 
 # The 8 schools data
@@ -21,14 +21,14 @@ def posterior_log_prob(params: Float[Array, "10"]) -> Float[Array, ""]:
 
     # Priors
     # Weakly informative priors for mu and tau
-    prior_mu = normal(0., 1.)(mu)
-    prior_tau = normal(5., 1.)(log_tau)  # prior on log_tau
+    prior_mu = normal_distribution.log_prob(LocationScaleParams(loc=0., scale=1.))(mu)
+    prior_tau = normal_distribution.log_prob(LocationScaleParams(loc=5., scale=1.))(log_tau)  # prior on log_tau
 
     # Hierarchical prior for school effects
-    prior_theta = normal(mu, tau)(theta)
+    prior_theta = normal_distribution.log_prob(LocationScaleParams(loc=mu, scale=tau))(theta)
 
     # Likelihood for observed effects
-    likelihood = normal(theta, standard_errors)(treatment_effects)
+    likelihood = normal_distribution.log_prob(LocationScaleParams(loc=theta, scale=standard_errors))(treatment_effects)
 
     return prior_mu + prior_tau + prior_theta + likelihood
 

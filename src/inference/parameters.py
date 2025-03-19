@@ -165,7 +165,7 @@ def transform_params(
     transformed_params = params.__class__(**param_dict)
     
     def log_det_fn(transformed: P) -> Float[Array, ""]:
-        log_det = 0.0
+        log_det: Float[Array, ""] = jnp.array(0.0)
         
         for name, constraint in constraints.items():
             log_det = log_det + jnp.sum(constraint.log_det_jacobian(getattr(transformed, name)))
