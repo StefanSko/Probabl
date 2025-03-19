@@ -21,6 +21,10 @@ from distributions.distribution import (
     beta_distribution,
     gamma_distribution,
 )
+from distributions.model_builder import (
+    EnhancedModelBuilder,
+    EnhancedProbabilisticModel,
+)
 
 __all__ = [
     "BaseParams",
@@ -29,6 +33,8 @@ __all__ = [
     "Data",
     "DataFn",
     "Distribution",
+    "EnhancedModelBuilder",
+    "EnhancedProbabilisticModel",
     "GammaDistribution",
     "GammaParams",
     "LocationScaleParams",
