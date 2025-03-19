@@ -37,8 +37,14 @@ ParametricDensityFn: TypeAlias = Callable[[P], LogDensityFn]  # p(x|θ)
 LogPDFFn: TypeAlias = Callable[[Array, Array | float, Array | float], Array]  # raw PDF computation
 
 
-#Type alias for a data provider
-Data: TypeAlias = Callable[[], Array]
+# Type aliases for data providers
+from typing import Protocol
+
+class DataFn(Protocol):
+    """Protocol for data provider functions."""
+    def __call__(self) -> Array: ...
+
+Data: TypeAlias = Callable[[], Array]  # Legacy type alias for backward compatibility
 
 
 def make_distribution(
