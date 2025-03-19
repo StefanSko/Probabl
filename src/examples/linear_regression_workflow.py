@@ -127,76 +127,66 @@ def main() -> None:
         
         return predictions + noise
     
-    # Create model builder
-    model_builder = EnhancedModelBuilder[LinearRegressionParams]()
+    # Create initial parameters for the model
+    initial_params = LinearRegressionParams(
+        intercept=jnp.array(0.0),
+        slope=jnp.array(0.0),
+        log_noise=jnp.array(0.0),
+    )
     
-    # Add observed data
-    model_builder.with_observed_data(observed_data_fn)
-    
-    # Add prior simulator
-    def prior_simulator() -> LinearRegressionParams:
-        """Generate parameters from the prior distribution."""
-        key = jax.random.PRNGKey(42)  # Fixed seed for reproducibility
-        k1, k2, k3 = jax.random.split(key, 3)
+    # Create model builder with auto-simulation capabilities
+    model_builder = (EnhancedModelBuilder[LinearRegressionParams]()
+        # Add observed data
+        .with_observed_data(observed_data_fn)
         
-        # Sample from prior distributions
-        intercept = jax.random.normal(k1) * 10.0  # N(0, 10)
-        slope = jax.random.normal(k2) * 10.0  # N(0, 10)
-        log_noise = jax.random.normal(k3)  # N(0, 1)
+        # Add the random key
+        .with_rng_key(jax.random.PRNGKey(42))
         
-        return LinearRegressionParams(
-            intercept=jnp.array(intercept),
-            slope=jnp.array(slope),
-            log_noise=jnp.array(log_noise),
+        # Store data shape for auto-simulation
+        .with_data_shape(y_data.shape)
+        
+        # Define parametric density function
+        .with_parametric_density_fn(
+            lambda params: (
+                lambda data: (
+                    # Prior contributions
+                    normal_distribution.log_prob(
+                        LocationScaleParams(loc=0.0, scale=10.0)
+                    )(params.intercept) +
+                    
+                    normal_distribution.log_prob(
+                        LocationScaleParams(loc=0.0, scale=10.0)
+                    )(params.slope) +
+                    
+                    normal_distribution.log_prob(
+                        LocationScaleParams(loc=0.0, scale=1.0)
+                    )(params.log_noise) +
+                    
+                    # Likelihood contribution
+                    normal_distribution.log_prob(
+                        LocationScaleParams(
+                            loc=params.intercept + params.slope * x_data, 
+                            scale=params.noise
+                        )
+                    )(data)
+                )
+            )
         )
-    
-    model_builder.with_custom_prior_simulator(prior_simulator)
-    
-    # Add prior data simulator
-    def prior_data_simulator() -> Array:
-        """Generate data from the prior predictive distribution."""
-        # Generate parameters from prior
-        params = prior_simulator()
-        # Generate data using those parameters
-        return simulate_data(params)
-    
-    model_builder.with_prior_data_simulator(prior_data_simulator)
-    
-    # Define parametric density function
-    def parametric_density_fn(params: LinearRegressionParams):
-        def log_prob(data: Array) -> Array:
-            # Prior contributions
-            prior_intercept_contrib = normal_distribution.log_prob(
-                LocationScaleParams(loc=0.0, scale=10.0)
-            )(params.intercept)
-            
-            prior_slope_contrib = normal_distribution.log_prob(
-                LocationScaleParams(loc=0.0, scale=10.0)
-            )(params.slope)
-            
-            prior_noise_contrib = normal_distribution.log_prob(
-                LocationScaleParams(loc=0.0, scale=1.0)
-            )(params.log_noise)
-            
-            # Likelihood contribution
-            predictions = params.intercept + params.slope * x_data
-            likelihood = normal_distribution.log_prob(
-                LocationScaleParams(loc=predictions, scale=params.noise)
-            )(data)
-            
-            return prior_intercept_contrib + prior_slope_contrib + prior_noise_contrib + likelihood
         
-        return log_prob
-    
-    # Add parametric density function
-    model_builder.with_parametric_density_fn(parametric_density_fn)
-    
-    # Create posterior data simulator
-    def posterior_data_simulator(params: LinearRegressionParams) -> Array:
-        """Generate data from the posterior predictive distribution."""
-        return simulate_data(params)
-    
-    model_builder.with_posterior_data_simulator(posterior_data_simulator)
+        # Use auto-prior simulator
+        .with_auto_prior_simulator(
+            default_params=initial_params,
+            data_shape=y_data.shape
+        )
+        
+        # Auto-generate the posterior simulator too
+        .with_posterior_data_simulator(
+            lambda params: (
+                params.intercept + params.slope * x_data + 
+                jax.random.normal(jax.random.PRNGKey(0), shape=y_data.shape) * params.noise
+            )
+        )
+    )
     
     # Build the model
     model = model_builder.build()
